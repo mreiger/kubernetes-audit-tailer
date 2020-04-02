@@ -64,7 +64,7 @@ func init() {
 	cmd.Flags().IntP("port", "", 3000, "the port to serve on")
 	cmd.Flags().StringP("audit-serve-path", "", "/audit", "the path on which the server serves audit requests")
 
-	cmd.Flags().StringArrayP("server-urls", "", []string{}, "splunk server urls (comma-separated")
+	cmd.Flags().StringSliceP("server-urls", "", []string{}, "splunk server urls (comma-separated")
 	cmd.Flags().StringP("token", "", "", "the token to authenticate at the splunk servers")
 
 	err := viper.BindPFlags(cmd.Flags())
