@@ -100,7 +100,7 @@ func main() {
 }
 
 func initConfig() {
-	viper.SetEnvPrefix("SPLUNK_AUDIT_SINK")
+	viper.SetEnvPrefix("SPLUNK_AUDIT_WEBHOOK")
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	viper.AutomaticEnv()
 
