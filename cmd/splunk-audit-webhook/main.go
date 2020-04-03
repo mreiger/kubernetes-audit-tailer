@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
 	"log"
 	"net/http"
@@ -38,6 +39,7 @@ type Opts struct {
 	AuditServePath string   `validate:"required"`
 	ServerURLs     []string `validate:"required"`
 	Token          string   `validate:"required"`
+	InsecureCert   bool     `validate:"required"`
 }
 
 var cmd = &cobra.Command{
@@ -67,6 +69,8 @@ func init() {
 	cmd.Flags().StringSliceP("server-urls", "", []string{}, "splunk server urls (comma-separated")
 	cmd.Flags().StringP("token", "", "", "the token to authenticate at the splunk servers")
 
+	cmd.Flags().BoolP("insecure-cert", "", false, "whether to skip certificate validation")
+
 	err := viper.BindPFlags(cmd.Flags())
 	if err != nil {
 		logger.Errorw("unable to construct root command", "error", err)
@@ -81,6 +85,7 @@ func initOpts() (*Opts, error) {
 		AuditServePath: viper.GetString("audit-serve-path"),
 		ServerURLs:     viper.GetStringSlice("server-urls"),
 		Token:          viper.GetString("token"),
+		InsecureCert:   viper.GetBool("insecure-cert"),
 	}
 
 	validate := validator.New()
@@ -158,7 +163,8 @@ func run(opts *Opts) {
 		opts.ServerURLs,
 		opts.Token,
 	)
-	splunkClient.SetHTTPClient(&http.Client{})
+	splunkClient.SetHTTPClient(&http.Client{Transport: &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: opts.InsecureCert}}})
 
 	auditController := audit.NewController(logger.Named("webhook-audit-controller"), splunkClient)
 
