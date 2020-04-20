@@ -178,13 +178,14 @@ func run(opts *Opts) {
 	http.HandleFunc(opts.AuditServePath, auditController.AuditEvent)
 
 	addr := fmt.Sprintf("%s:%d", opts.BindAddr, opts.Port)
-	logger.Infow("starting splunk audit webhook", "version", v.V.String(), "address", addr)
 	if opts.WebhookTLSCert != "" && opts.WebhookTLSKey != "" {
+		logger.Infow("starting splunk audit TLS webhook", "version", v.V.String(), "address", addr, "Cert", opts.WebhookTLSCert, "Key", opts.WebhookTLSKey)
 		err := http.ListenAndServeTLS(addr, opts.WebhookTLSCert, opts.WebhookTLSKey, nil)
 		if err != nil {
 			logger.Errorw("failed to start audit webhook TLS server", "error", err)
 		}
 	} else {
+		logger.Infow("starting splunk audit plain webhook", "version", v.V.String(), "address", addr)
 		err := http.ListenAndServe(addr, nil)
 		if err != nil {
 			logger.Errorw("failed to start audit webhook plain http server", "error", err)
