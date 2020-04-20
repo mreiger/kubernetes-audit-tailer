@@ -40,8 +40,8 @@ type Opts struct {
 	ServerURLs     []string `validate:"required"`
 	Token          string   `validate:"required"`
 	InsecureCert   bool     `validate:"required"`
-	WebhookTLSKey  string   `validate:"required"`
-	WebhookTLSCert string   `validate:"required"`
+	WebhookTLSKey  string
+	WebhookTLSCert string
 }
 
 var cmd = &cobra.Command{
