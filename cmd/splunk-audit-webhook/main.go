@@ -40,8 +40,6 @@ type Opts struct {
 	ServerURLs     []string `validate:"required"`
 	Token          string   `validate:"required"`
 	InsecureCert   bool     `validate:"required"`
-	WebhookTLSKey  string   `validate:"required"`
-	WebhookTLSCert string   `validate:"required"`
 }
 
 var cmd = &cobra.Command{
@@ -73,9 +71,6 @@ func init() {
 
 	cmd.Flags().BoolP("insecure-cert", "", false, "whether to skip certificate validation")
 
-	cmd.Flags().StringP("webhook-tls-key", "", "", "the path to the tls key file for the webhook web server")
-	cmd.Flags().StringP("webhook-tls-cert", "", "", "the path to the tls certificate file for the webhook web server")
-
 	err := viper.BindPFlags(cmd.Flags())
 	if err != nil {
 		logger.Errorw("unable to construct root command", "error", err)
@@ -91,8 +86,6 @@ func initOpts() (*Opts, error) {
 		ServerURLs:     viper.GetStringSlice("server-urls"),
 		Token:          viper.GetString("token"),
 		InsecureCert:   viper.GetBool("insecure-cert"),
-		WebhookTLSKey:  viper.GetString("webhook-tls-key"),
-		WebhookTLSCert: viper.GetString("webhook-tls-cert"),
 	}
 
 	validate := validator.New()
@@ -179,15 +172,8 @@ func run(opts *Opts) {
 
 	addr := fmt.Sprintf("%s:%d", opts.BindAddr, opts.Port)
 	logger.Infow("starting splunk audit webhook", "version", v.V.String(), "address", addr)
-	if opts.WebhookTLSCert != "" && opts.WebhookTLSKey != "" {
-		err := http.ListenAndServeTLS(addr, opts.WebhookTLSCert, opts.WebhookTLSKey, nil)
-		if err != nil {
-			logger.Errorw("failed to start audit webhook TLS server", "error", err)
-		}
-	} else {
-		err := http.ListenAndServe(addr, nil)
-		if err != nil {
-			logger.Errorw("failed to start audit webhook http server", "error", err)
-		}
+	err := http.ListenAndServe(addr, nil)
+	if err != nil {
+		logger.Errorw("failed to start audit webhook server", "error", err)
 	}
 }
