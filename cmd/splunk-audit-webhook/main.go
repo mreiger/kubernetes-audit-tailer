@@ -187,7 +187,7 @@ func run(opts *Opts) {
 	} else {
 		err := http.ListenAndServe(addr, nil)
 		if err != nil {
-			logger.Errorw("failed to start audit webhook http server", "error", err)
+			logger.Errorw("failed to start audit webhook plain http server", "error", err)
 		}
 	}
 }
