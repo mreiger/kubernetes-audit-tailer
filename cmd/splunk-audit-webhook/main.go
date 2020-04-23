@@ -178,7 +178,7 @@ func run(opts *Opts) {
 		opts.Token,
 	)
 
-	if opts.WebhookTLSCert != "" && opts.WebhookTLSKey != "" {
+	if opts.ClientTLSCert != "" && opts.ClientTLSKey != "" {
 		logger.Infow("getting client certificates from file", "Certificate", opts.ClientTLSCert, "Key", opts.ClientTLSKey)
 		clientCert, err := tls.LoadX509KeyPair(opts.ClientTLSCert, opts.ClientTLSKey)
 		if err != nil {
