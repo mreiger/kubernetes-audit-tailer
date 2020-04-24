@@ -3,7 +3,6 @@ package audit
 import (
 	"io/ioutil"
 	"net/http"
-	"time"
 
 	hec "github.com/fuyufjh/splunk-hec-go"
 
@@ -31,7 +30,15 @@ func (c *Controller) AuditEvent(response http.ResponseWriter, request *http.Requ
 	c.logger.Infow("received audit event", "request", BodyString)
 
 	event := hec.NewEvent(request.Body)
-	event.SetTime(time.Now())
+	// event.SetTime(time.Now())
+
+	c.logger.Infow("Event",
+		"Host", event.Host,
+		"Index", event.Index,
+		"Source", event.Source,
+		"SourceType", event.SetSourceType,
+		"Time", event.Time,
+	)
 
 	err := c.client.WriteEvent(event)
 	if err != nil {
