@@ -29,7 +29,12 @@ func NewController(logger *zap.SugaredLogger, client hec.HEC) *Controller {
 func (c *Controller) AuditEvent(response http.ResponseWriter, request *http.Request) {
 	BodyStringBase64, _ := ioutil.ReadAll(request.Body)
 	var BodyString []byte
-	base64.StdEncoding.Decode(BodyString, BodyStringBase64)
+	_, err := base64.StdEncoding.Decode(BodyString, BodyStringBase64)
+	if err != nil {
+		c.logger.Errorw("error base64 decoding the body", "error", err)
+		response.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	c.logger.Infow("received audit event", "request", BodyString)
 
 	event := hec.NewEvent(BodyString)
