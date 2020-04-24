@@ -48,7 +48,7 @@ func (c *Controller) AuditEvent(response http.ResponseWriter, request *http.Requ
 		"Time", event.Time,
 	)
 
-	err := c.client.WriteEvent(event)
+	err = c.client.WriteEvent(event)
 	if err != nil {
 		c.logger.Errorw("error sending event to splunk", "error", err)
 		response.WriteHeader(http.StatusInternalServerError)
