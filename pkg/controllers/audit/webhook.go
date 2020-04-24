@@ -1,6 +1,7 @@
 package audit
 
 import (
+	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -26,9 +27,10 @@ func NewController(logger *zap.SugaredLogger, client hec.HEC) *Controller {
 
 // AuditEvent handles an audit event
 func (c *Controller) AuditEvent(response http.ResponseWriter, request *http.Request) {
-	c.logger.Infow("received audit event", "request", request.Body)
+	BodyString, err := ioutil.ReadAll(request.Body)
+	c.logger.Infow("received audit event", "request", BodyString)
 
-	event := hec.NewEvent("event one")
+	event := hec.NewEvent(request.Body)
 	event.SetTime(time.Now())
 
 	err := c.client.WriteEvent(event)
