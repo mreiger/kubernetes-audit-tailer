@@ -38,7 +38,7 @@ func (c *Controller) AuditEvent(response http.ResponseWriter, request *http.Requ
 	// }
 	// c.logger.Infow("received audit event", "request base64decoded", BodyString)
 
-	event := hec.NewEvent(Body)
+	event := hec.NewEvent(string(Body))
 	event.SetHost("HOST")
 	event.SetTime(time.Now())
 	event.SetSource("SOURCE")
