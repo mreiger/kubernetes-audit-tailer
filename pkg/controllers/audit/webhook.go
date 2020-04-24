@@ -27,7 +27,7 @@ func NewController(logger *zap.SugaredLogger, client hec.HEC) *Controller {
 
 // AuditEvent handles an audit event
 func (c *Controller) AuditEvent(response http.ResponseWriter, request *http.Request) {
-	BodyString, err := ioutil.ReadAll(request.Body)
+	BodyString, _ := ioutil.ReadAll(request.Body)
 	c.logger.Infow("received audit event", "request", BodyString)
 
 	event := hec.NewEvent(request.Body)
