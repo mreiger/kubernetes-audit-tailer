@@ -49,6 +49,7 @@ func (c *Controller) AuditEvent(response http.ResponseWriter, request *http.Requ
 		"Time", event.Time,
 		"Source", event.Source,
 		"Sourcetype", event.SourceType,
+		event.Event,
 	)
 
 	err := c.client.WriteEvent(event)
