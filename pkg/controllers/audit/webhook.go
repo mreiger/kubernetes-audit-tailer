@@ -1,6 +1,7 @@
 package audit
 
 import (
+	"encoding/base64"
 	"io/ioutil"
 	"net/http"
 
@@ -26,7 +27,9 @@ func NewController(logger *zap.SugaredLogger, client hec.HEC) *Controller {
 
 // AuditEvent handles an audit event
 func (c *Controller) AuditEvent(response http.ResponseWriter, request *http.Request) {
-	BodyString, _ := ioutil.ReadAll(request.Body)
+	BodyStringBase64, _ := ioutil.ReadAll(request.Body)
+	var BodyString []byte
+	base64.StdEncoding.Decode(BodyString, BodyStringBase64)
 	c.logger.Infow("received audit event", "request", BodyString)
 
 	event := hec.NewEvent(BodyString)
