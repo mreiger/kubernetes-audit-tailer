@@ -29,7 +29,7 @@ func (c *Controller) AuditEvent(response http.ResponseWriter, request *http.Requ
 	BodyString, _ := ioutil.ReadAll(request.Body)
 	c.logger.Infow("received audit event", "request", BodyString)
 
-	event := hec.NewEvent(request.Body)
+	event := hec.NewEvent(BodyString)
 	// event.SetTime(time.Now())
 
 	c.logger.Infow("Event",
