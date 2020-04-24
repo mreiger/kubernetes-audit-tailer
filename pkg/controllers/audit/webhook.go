@@ -1,7 +1,7 @@
 package audit
 
 import (
-	"encoding/base64"
+	// "encoding/base64"
 	"io/ioutil"
 	"net/http"
 
@@ -29,26 +29,20 @@ func NewController(logger *zap.SugaredLogger, client hec.HEC) *Controller {
 func (c *Controller) AuditEvent(response http.ResponseWriter, request *http.Request) {
 	BodyStringBase64, _ := ioutil.ReadAll(request.Body)
 	c.logger.Infow("received audit event", "request", BodyStringBase64)
-	BodyString, err := base64.URLEncoding.DecodeString(string(BodyStringBase64))
-	if err != nil {
-		c.logger.Errorw("error base64 decoding the body", "error", err)
-		response.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	c.logger.Infow("received audit event", "request base64decoded", BodyString)
+	// BodyString, err := base64.URLEncoding.DecodeString(string(BodyStringBase64))
+	// if err != nil {
+	// 	c.logger.Errorw("error base64 decoding the body", "error", err)
+	// 	response.WriteHeader(http.StatusInternalServerError)
+	// 	return
+	// }
+	// c.logger.Infow("received audit event", "request base64decoded", BodyString)
 
-	event := hec.NewEvent(BodyString)
+	event := hec.NewEvent(BodyStringBase64)
 	// event.SetTime(time.Now())
 
-	c.logger.Infow("Event",
-		"Host", event.Host,
-		"Index", event.Index,
-		"Source", event.Source,
-		"SourceType", event.SetSourceType,
-		"Time", event.Time,
-	)
+	c.logger.Infow("HEC Event", event.Event)
 
-	err = c.client.WriteEvent(event)
+	err := c.client.WriteEvent(event)
 	if err != nil {
 		c.logger.Errorw("error sending event to splunk", "error", err)
 		response.WriteHeader(http.StatusInternalServerError)
