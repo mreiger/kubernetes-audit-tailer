@@ -4,7 +4,6 @@ import (
 	// "encoding/base64"
 	"io/ioutil"
 	"net/http"
-	"time"
 
 	hec "github.com/fuyufjh/splunk-hec-go"
 
@@ -39,10 +38,10 @@ func (c *Controller) AuditEvent(response http.ResponseWriter, request *http.Requ
 	// c.logger.Infow("received audit event", "request base64decoded", BodyString)
 
 	event := hec.NewEvent(string(Body))
-	event.SetHost("HOST")
-	event.SetTime(time.Now())
-	event.SetSource("SOURCE")
-	event.SetSourceType("SOURCETYPE")
+	// event.SetHost("HOST")
+	// event.SetTime(time.Now())
+	// event.SetSource("SOURCE")
+	// event.SetSourceType("SOURCETYPE")
 
 	c.logger.Infow("HEC Event",
 		"Host", event.Host,
