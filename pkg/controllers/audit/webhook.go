@@ -29,26 +29,18 @@ func NewController(logger *zap.SugaredLogger, client hec.HEC) *Controller {
 func (c *Controller) AuditEvent(response http.ResponseWriter, request *http.Request) {
 	Body, _ := ioutil.ReadAll(request.Body)
 	c.logger.Infow("received audit event", "request", string(Body))
-	// BodyString, err := base64.URLEncoding.DecodeString(string(BodyStringBase64))
-	// if err != nil {
-	// 	c.logger.Errorw("error base64 decoding the body", "error", err)
-	// 	response.WriteHeader(http.StatusInternalServerError)
-	// 	return
-	// }
-	// c.logger.Infow("received audit event", "request base64decoded", BodyString)
 
 	event := hec.NewEvent(string(Body))
-	// event.SetHost("HOST")
-	// event.SetTime(time.Now())
-	// event.SetSource("SOURCE")
-	// event.SetSourceType("SOURCETYPE")
+	// event.SetHost("HOST") // FIXME Maybe set HOST to something sensical - cluster name? - it gets kept in Splunk
+	// event.SetTime(time.Now()) // Splunk sets the time if not specified here
+	// event.SetSource("SOURCE") // Could set this but Splunk defaults are probably good enough
+	// event.SetSourceType("SOURCETYPE") // dito
 
 	c.logger.Infow("HEC Event",
 		"Host", event.Host,
 		"Time", event.Time,
 		"Source", event.Source,
 		"Sourcetype", event.SourceType,
-		// event.Fields.(string),
 		"Event", event.Event.(string),
 	)
 
