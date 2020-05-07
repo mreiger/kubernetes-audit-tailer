@@ -40,6 +40,10 @@ type Opts struct {
 	ServerURLs     []string `validate:"required"`
 	Token          string   `validate:"required"`
 	InsecureCert   bool     `validate:"required"`
+	ClientTLSKey   string
+	ClientTLSCert  string
+	WebhookTLSKey  string
+	WebhookTLSCert string
 }
 
 var cmd = &cobra.Command{
@@ -71,6 +75,12 @@ func init() {
 
 	cmd.Flags().BoolP("insecure-cert", "", false, "whether to skip certificate validation")
 
+	cmd.Flags().StringP("client-tls-key", "", "", "the path to the tls key file for client authentication to the splunk server with client certificate")
+	cmd.Flags().StringP("client-tls-cert", "", "", "the path to the tls certificate file for client authentication to the splunk server with client certificate")
+
+	cmd.Flags().StringP("webhook-tls-key", "", "", "the path to the tls key file for the webhook web server")
+	cmd.Flags().StringP("webhook-tls-cert", "", "", "the path to the tls certificate file for the webhook web server")
+
 	err := viper.BindPFlags(cmd.Flags())
 	if err != nil {
 		logger.Errorw("unable to construct root command", "error", err)
@@ -86,6 +96,10 @@ func initOpts() (*Opts, error) {
 		ServerURLs:     viper.GetStringSlice("server-urls"),
 		Token:          viper.GetString("token"),
 		InsecureCert:   viper.GetBool("insecure-cert"),
+		ClientTLSKey:   viper.GetString("client-tls-key"),
+		ClientTLSCert:  viper.GetString("client-tls-cert"),
+		WebhookTLSKey:  viper.GetString("webhook-tls-key"),
+		WebhookTLSCert: viper.GetString("webhook-tls-cert"),
 	}
 
 	validate := validator.New()
@@ -163,17 +177,41 @@ func run(opts *Opts) {
 		opts.ServerURLs,
 		opts.Token,
 	)
-	splunkClient.SetHTTPClient(&http.Client{Transport: &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: opts.InsecureCert}}})
+
+	if opts.ClientTLSCert != "" && opts.ClientTLSKey != "" {
+		logger.Infow("getting client certificates from file", "Certificate", opts.ClientTLSCert, "Key", opts.ClientTLSKey)
+		clientCert, err := tls.LoadX509KeyPair(opts.ClientTLSCert, opts.ClientTLSKey)
+		if err != nil {
+			logger.Errorw("failed to load client certificate and key", "Certificate", opts.ClientTLSCert, "Key", opts.ClientTLSKey, "error", err)
+		}
+		splunkClient.SetHTTPClient(&http.Client{Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: opts.InsecureCert,
+				Certificates:       []tls.Certificate{clientCert},
+			}}})
+	} else {
+		splunkClient.SetHTTPClient(&http.Client{Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: opts.InsecureCert,
+			}}})
+	}
 
 	auditController := audit.NewController(logger.Named("webhook-audit-controller"), splunkClient)
 
 	http.HandleFunc(opts.AuditServePath, auditController.AuditEvent)
 
 	addr := fmt.Sprintf("%s:%d", opts.BindAddr, opts.Port)
-	logger.Infow("starting splunk audit webhook", "version", v.V.String(), "address", addr)
-	err := http.ListenAndServe(addr, nil)
-	if err != nil {
-		logger.Errorw("failed to start audit webhook server", "error", err)
+	if opts.WebhookTLSCert != "" && opts.WebhookTLSKey != "" {
+		logger.Infow("starting splunk audit TLS webhook", "version", v.V.String(), "address", addr, "Cert", opts.WebhookTLSCert, "Key", opts.WebhookTLSKey)
+		err := http.ListenAndServeTLS(addr, opts.WebhookTLSCert, opts.WebhookTLSKey, nil)
+		if err != nil {
+			logger.Errorw("failed to start audit webhook TLS server", "error", err)
+		}
+	} else {
+		logger.Infow("starting splunk audit plain webhook", "version", v.V.String(), "address", addr)
+		err := http.ListenAndServe(addr, nil)
+		if err != nil {
+			logger.Errorw("failed to start audit webhook plain http server", "error", err)
+		}
 	}
 }
