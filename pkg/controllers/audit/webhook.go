@@ -27,10 +27,10 @@ func NewController(logger *zap.SugaredLogger, client hec.HEC) *Controller {
 
 // AuditEvent handles an audit event
 func (c *Controller) AuditEvent(response http.ResponseWriter, request *http.Request) {
-	Body, _ := ioutil.ReadAll(request.Body)
-	c.logger.Infow("received audit event", "request", string(Body))
+	body, _ := ioutil.ReadAll(request.Body)
+	c.logger.Infow("received audit event", "request", string(body))
 
-	event := hec.NewEvent(string(Body))
+	event := hec.NewEvent(string(body))
 	// event.SetHost("HOST") // FIXME Maybe set HOST to something sensical - cluster name? - it gets kept in Splunk
 	// event.SetTime(time.Now()) // Splunk sets the time if not specified here
 	// event.SetSource("SOURCE") // Could set this but Splunk defaults are probably good enough
