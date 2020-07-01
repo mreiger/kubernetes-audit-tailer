@@ -34,12 +34,12 @@ var (
 // this is because MarkFlagRequired from cobra does not work well with viper, see:
 // https://github.com/spf13/viper/issues/397
 type Opts struct {
-	BindAddr       string   `validate:"required"`
-	Port           int      `validate:"required"`
+	BindAddr       string
+	Port           int
 	AuditServePath string   `validate:"required"`
 	ServerURLs     []string `validate:"required"`
 	Token          string   `validate:"required"`
-	InsecureCert   bool     `validate:"required"`
+	InsecureCert   bool
 	ClientTLSKey   string
 	ClientTLSCert  string
 	WebhookTLSKey  string
