@@ -14,13 +14,15 @@ import (
 type Controller struct {
 	logger *zap.SugaredLogger
 	client hec.HEC
+	host   string
 }
 
 // NewController returns a new accounting controller
-func NewController(logger *zap.SugaredLogger, client hec.HEC) *Controller {
+func NewController(logger *zap.SugaredLogger, client hec.HEC, host string) *Controller {
 	controller := &Controller{
 		logger: logger,
 		client: client,
+		host:   host,
 	}
 	return controller
 }
@@ -31,7 +33,9 @@ func (c *Controller) AuditEvent(response http.ResponseWriter, request *http.Requ
 	c.logger.Infow("received audit event", "request", string(body))
 
 	event := hec.NewEvent(string(body))
-	// event.SetHost("HOST") // FIXME Maybe set HOST to something sensical - cluster name? - it gets kept in Splunk
+	if c.host != "" {
+		event.SetHost(c.host)
+	}
 	// event.SetTime(time.Now()) // Splunk sets the time if not specified here
 	// event.SetSource("SOURCE") // Could set this but Splunk defaults are probably good enough
 	// event.SetSourceType("SOURCETYPE") // dito

@@ -44,6 +44,7 @@ type Opts struct {
 	ClientTLSCert  string
 	WebhookTLSKey  string
 	WebhookTLSCert string
+	Host           string
 }
 
 var cmd = &cobra.Command{
@@ -81,6 +82,8 @@ func init() {
 	cmd.Flags().StringP("webhook-tls-key", "", "", "the path to the tls key file for the webhook web server")
 	cmd.Flags().StringP("webhook-tls-cert", "", "", "the path to the tls certificate file for the webhook web server")
 
+	cmd.Flags().StringP("host", "", "", "the host name to use in the splunk events")
+
 	err := viper.BindPFlags(cmd.Flags())
 	if err != nil {
 		logger.Errorw("unable to construct root command", "error", err)
@@ -100,6 +103,7 @@ func initOpts() (*Opts, error) {
 		ClientTLSCert:  viper.GetString("client-tls-cert"),
 		WebhookTLSKey:  viper.GetString("webhook-tls-key"),
 		WebhookTLSCert: viper.GetString("webhook-tls-cert"),
+		Host:           viper.GetString("host"),
 	}
 
 	validate := validator.New()
@@ -196,7 +200,7 @@ func run(opts *Opts) {
 			}}})
 	}
 
-	auditController := audit.NewController(logger.Named("webhook-audit-controller"), splunkClient)
+	auditController := audit.NewController(logger.Named("webhook-audit-controller"), splunkClient, opts.Host)
 
 	http.HandleFunc(opts.AuditServePath, auditController.AuditEvent)
 
