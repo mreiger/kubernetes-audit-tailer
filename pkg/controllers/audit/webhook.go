@@ -30,9 +30,8 @@ func NewController(logger *zap.SugaredLogger, client hec.HEC, host string) *Cont
 // AuditEvent handles an audit event
 func (c *Controller) AuditEvent(response http.ResponseWriter, request *http.Request) {
 	body, _ := ioutil.ReadAll(request.Body)
-	c.logger.Infow("received audit event", "request", string(body))
+	// c.logger.Infow("received audit event", "request", string(body))
 
-	c.logger.Infow("Splunk host:", "c.host=", c.host)
 	event := hec.NewEvent(string(body))
 	if c.host != "" {
 		event.SetHost(c.host)
