@@ -200,6 +200,8 @@ func run(opts *Opts) {
 			}}})
 	}
 
+	logger.Infow("Making new auditController with", "Splunk hostname", opts.Host)
+
 	auditController := audit.NewController(logger.Named("webhook-audit-controller"), splunkClient, opts.Host)
 
 	http.HandleFunc(opts.AuditServePath, auditController.AuditEvent)
