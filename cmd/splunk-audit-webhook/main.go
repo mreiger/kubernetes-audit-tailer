@@ -160,6 +160,8 @@ func initConfig() {
 func initLogging() {
 	level := zap.InfoLevel
 
+	log.Printf("Log-level flag: %s", viper.GetString("log-level")) // DEBUG
+
 	if viper.IsSet("log-level") {
 		err := level.UnmarshalText([]byte(viper.GetString("log-level")))
 		if err != nil {
@@ -169,6 +171,8 @@ func initLogging() {
 
 	cfg := zap.NewProductionConfig()
 	cfg.Level = zap.NewAtomicLevelAt(level)
+
+	log.Printf("Log level: %s", cfg.Level) // DEBUG
 
 	l, err := cfg.Build()
 	if err != nil {
