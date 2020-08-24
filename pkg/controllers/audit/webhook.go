@@ -30,7 +30,7 @@ func NewController(logger *zap.SugaredLogger, client hec.HEC, host string) *Cont
 // AuditEvent handles an audit event
 func (c *Controller) AuditEvent(response http.ResponseWriter, request *http.Request) {
 	body, _ := ioutil.ReadAll(request.Body)
-	// c.logger.Infow("received audit event", "request", string(body))
+	c.logger.Debugw("received audit event", "request", string(body))
 
 	event := hec.NewEvent(string(body))
 	if c.host != "" {
@@ -40,7 +40,7 @@ func (c *Controller) AuditEvent(response http.ResponseWriter, request *http.Requ
 	// event.SetSource("SOURCE") // Could set this but Splunk defaults are probably good enough
 	// event.SetSourceType("SOURCETYPE") // dito
 
-	c.logger.Infow("HEC Event",
+	c.logger.Debugw("HEC Event",
 		"Host", event.Host,
 		"Time", event.Time,
 		"Source", event.Source,

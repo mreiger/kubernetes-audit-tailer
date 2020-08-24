@@ -45,6 +45,7 @@ type Opts struct {
 	WebhookTLSKey  string
 	WebhookTLSCert string
 	Host           string
+	LogLevel       string
 }
 
 var cmd = &cobra.Command{
@@ -104,6 +105,7 @@ func initOpts() (*Opts, error) {
 		WebhookTLSKey:  viper.GetString("webhook-tls-key"),
 		WebhookTLSCert: viper.GetString("webhook-tls-cert"),
 		Host:           viper.GetString("host"),
+		LogLevel:       viper.GetString("log-level"),
 	}
 
 	validate := validator.New()
