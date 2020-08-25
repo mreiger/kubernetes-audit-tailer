@@ -53,13 +53,12 @@ var cmd = &cobra.Command{
 	Short:   "a webhook that forwards audit events to splunk",
 	Version: v.V.String(),
 	Run: func(cmd *cobra.Command, args []string) {
-		initLogging()
 		initConfig()
 		opts, err := initOpts()
 		if err != nil {
-			logger.Errorw("unable to init options", "error", err)
-			return
+			log.Fatalf("unable to init options, error: %v", err)
 		}
+		initLogging()
 		run(opts)
 	},
 }
