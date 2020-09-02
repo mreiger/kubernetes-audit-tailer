@@ -45,6 +45,7 @@ type Opts struct {
 	WebhookTLSKey  string
 	WebhookTLSCert string
 	Host           string
+	LogLevel       string
 }
 
 var cmd = &cobra.Command{
@@ -52,13 +53,12 @@ var cmd = &cobra.Command{
 	Short:   "a webhook that forwards audit events to splunk",
 	Version: v.V.String(),
 	Run: func(cmd *cobra.Command, args []string) {
-		initLogging()
 		initConfig()
 		opts, err := initOpts()
 		if err != nil {
-			logger.Errorw("unable to init options", "error", err)
-			return
+			log.Fatalf("unable to init options, error: %v", err)
 		}
+		initLogging()
 		run(opts)
 	},
 }
@@ -104,6 +104,7 @@ func initOpts() (*Opts, error) {
 		WebhookTLSKey:  viper.GetString("webhook-tls-key"),
 		WebhookTLSCert: viper.GetString("webhook-tls-cert"),
 		Host:           viper.GetString("host"),
+		LogLevel:       viper.GetString("log-level"),
 	}
 
 	validate := validator.New()
@@ -167,6 +168,8 @@ func initLogging() {
 
 	cfg := zap.NewProductionConfig()
 	cfg.Level = zap.NewAtomicLevelAt(level)
+
+	log.Printf("Log level: %s", cfg.Level)
 
 	l, err := cfg.Build()
 	if err != nil {
