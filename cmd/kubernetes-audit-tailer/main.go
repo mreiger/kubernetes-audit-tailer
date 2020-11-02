@@ -158,19 +158,22 @@ func logEvent(response http.ResponseWriter, request *http.Request) {
 	body, _ := ioutil.ReadAll(request.Body)
 	logger.Debugw("received audit event", "request", string(body))
 
-	_, err := os.Stderr.Write(body)
+	log.Print(string(body))
 
-	if err != nil {
-		logger.Errorw("error writing event", "error", err)
-		response.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	// if err != nil {
+	// 	logger.Errorw("error writing event", "error", err)
+	// 	response.WriteHeader(http.StatusInternalServerError)
+	// 	return
+	// }
 
 	response.WriteHeader(http.StatusOK)
 }
 
 func run(opts *Opts) {
 	http.HandleFunc(opts.AuditServePath, logEvent)
+
+	// Do not prefix the log messages with anything as we want the raw message available
+	log.SetFlags(0)
 
 	addr := fmt.Sprintf("%s:%d", opts.BindAddr, opts.Port)
 	if opts.WebhookTLSCert != "" && opts.WebhookTLSKey != "" {
