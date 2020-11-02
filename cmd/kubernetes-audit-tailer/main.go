@@ -158,13 +158,13 @@ func logEvent(response http.ResponseWriter, request *http.Request) {
 	body, _ := ioutil.ReadAll(request.Body)
 	logger.Debugw("received audit event", "request", string(body))
 
-	log.Print(body)
+	_, err := os.Stderr.Write(body)
 
-	// if err != nil {
-	// 	logger.Errorw("error writing event", "error", err)
-	// 	response.WriteHeader(http.StatusInternalServerError)
-	// 	return
-	// }
+	if err != nil {
+		logger.Errorw("error writing event", "error", err)
+		response.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	response.WriteHeader(http.StatusOK)
 }
