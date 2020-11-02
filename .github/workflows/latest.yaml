@@ -17,6 +17,6 @@ jobs:
         args: run
     - name: Build and push Docker image
       run: |
-        docker login -u metalstackci -p ${{ secrets.DOCKER_HUB_TOKEN }}
-        docker build -t metalstack/kubernetes-audit-tailer .
-        docker push metalstack/kubernetes-audit-tailer
+        docker login -u mreiger -p ${{ secrets.DOCKER_HUB_TOKEN }}
+        docker build -t mreiger/kubernetes-audit-tailer .
+        docker push mreiger/kubernetes-audit-tailer
