@@ -1,8 +1,8 @@
 package main
 
 import (
-	"crypto/tls"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -10,10 +10,7 @@ import (
 
 	"go.uber.org/zap"
 
-	hec "github.com/fuyufjh/splunk-hec-go"
 	"github.com/metal-stack/v"
-
-	"github.com/mreiger/kubernetes-audit-tailer/pkg/controllers/audit"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -36,21 +33,15 @@ var (
 type Opts struct {
 	BindAddr       string
 	Port           int
-	AuditServePath string   `validate:"required"`
-	ServerURLs     []string `validate:"required"`
-	Token          string   `validate:"required"`
-	InsecureCert   bool
-	ClientTLSKey   string
-	ClientTLSCert  string
+	AuditServePath string `validate:"required"`
 	WebhookTLSKey  string
 	WebhookTLSCert string
-	Host           string
 	LogLevel       string
 }
 
 var cmd = &cobra.Command{
 	Use:     moduleName,
-	Short:   "a webhook that forwards audit events to splunk",
+	Short:   "a webhook that accepts audit events and writes them to stdout so they can be picked up by another log processing system.",
 	Version: v.V.String(),
 	Run: func(cmd *cobra.Command, args []string) {
 		initConfig()
@@ -71,18 +62,8 @@ func init() {
 	cmd.Flags().IntP("port", "", 3000, "the port to serve on")
 	cmd.Flags().StringP("audit-serve-path", "", "/audit", "the path on which the server serves audit requests")
 
-	cmd.Flags().StringSliceP("server-urls", "", []string{}, "splunk server urls (comma-separated")
-	cmd.Flags().StringP("token", "", "", "the token to authenticate at the splunk servers")
-
-	cmd.Flags().BoolP("insecure-cert", "", false, "whether to skip certificate validation")
-
-	cmd.Flags().StringP("client-tls-key", "", "", "the path to the tls key file for client authentication to the splunk server with client certificate")
-	cmd.Flags().StringP("client-tls-cert", "", "", "the path to the tls certificate file for client authentication to the splunk server with client certificate")
-
 	cmd.Flags().StringP("webhook-tls-key", "", "", "the path to the tls key file for the webhook web server")
 	cmd.Flags().StringP("webhook-tls-cert", "", "", "the path to the tls certificate file for the webhook web server")
-
-	cmd.Flags().StringP("host", "", "", "the host name to use in the splunk events")
 
 	err := viper.BindPFlags(cmd.Flags())
 	if err != nil {
@@ -96,14 +77,8 @@ func initOpts() (*Opts, error) {
 		BindAddr:       viper.GetString("bind-addr"),
 		Port:           viper.GetInt("port"),
 		AuditServePath: viper.GetString("audit-serve-path"),
-		ServerURLs:     viper.GetStringSlice("server-urls"),
-		Token:          viper.GetString("token"),
-		InsecureCert:   viper.GetBool("insecure-cert"),
-		ClientTLSKey:   viper.GetString("client-tls-key"),
-		ClientTLSCert:  viper.GetString("client-tls-cert"),
 		WebhookTLSKey:  viper.GetString("webhook-tls-key"),
 		WebhookTLSCert: viper.GetString("webhook-tls-cert"),
-		Host:           viper.GetString("host"),
 		LogLevel:       viper.GetString("log-level"),
 	}
 
@@ -124,7 +99,7 @@ func main() {
 }
 
 func initConfig() {
-	viper.SetEnvPrefix("SPLUNK_AUDIT_WEBHOOK")
+	viper.SetEnvPrefix("KUBERNETES_AUDIT_TAILER")
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	viper.AutomaticEnv()
 
@@ -179,35 +154,23 @@ func initLogging() {
 	logger = l.Sugar()
 }
 
-func run(opts *Opts) {
-	splunkClient := hec.NewCluster(
-		opts.ServerURLs,
-		opts.Token,
-	)
+func logEvent(response http.ResponseWriter, request *http.Request) {
+	body, _ := ioutil.ReadAll(request.Body)
+	logger.Debugw("received audit event", "request", string(body))
 
-	if opts.ClientTLSCert != "" && opts.ClientTLSKey != "" {
-		logger.Infow("getting client certificates from file", "Certificate", opts.ClientTLSCert, "Key", opts.ClientTLSKey)
-		clientCert, err := tls.LoadX509KeyPair(opts.ClientTLSCert, opts.ClientTLSKey)
-		if err != nil {
-			logger.Errorw("failed to load client certificate and key", "Certificate", opts.ClientTLSCert, "Key", opts.ClientTLSKey, "error", err)
-		}
-		splunkClient.SetHTTPClient(&http.Client{Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: opts.InsecureCert,
-				Certificates:       []tls.Certificate{clientCert},
-			}}})
-	} else {
-		splunkClient.SetHTTPClient(&http.Client{Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: opts.InsecureCert,
-			}}})
+	_, err := fmt.Print(body)
+
+	if err != nil {
+		c.logger.Errorw("error writing event", "error", err)
+		response.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
-	logger.Infow("Making new auditController with", "Splunk hostname", opts.Host)
+	response.WriteHeader(http.StatusOK)
+}
 
-	auditController := audit.NewController(logger.Named("webhook-audit-controller"), splunkClient, opts.Host)
-
-	http.HandleFunc(opts.AuditServePath, auditController.AuditEvent)
+func run(opts *Opts) {
+	http.HandleFunc(opts.AuditServePath, logEvent)
 
 	addr := fmt.Sprintf("%s:%d", opts.BindAddr, opts.Port)
 	if opts.WebhookTLSCert != "" && opts.WebhookTLSKey != "" {
