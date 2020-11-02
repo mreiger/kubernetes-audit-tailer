@@ -161,7 +161,7 @@ func logEvent(response http.ResponseWriter, request *http.Request) {
 	_, err := fmt.Print(body)
 
 	if err != nil {
-		c.logger.Errorw("error writing event", "error", err)
+		logger.Errorw("error writing event", "error", err)
 		response.WriteHeader(http.StatusInternalServerError)
 		return
 	}
