@@ -18,5 +18,5 @@ jobs:
     - name: Build and push Docker image
       run: |
         docker login -u metalstackci -p ${{ secrets.DOCKER_HUB_TOKEN }}
-        docker build -t metalstack/kubernetes-splunk-audit-webhook .
-        docker push metalstack/kubernetes-splunk-audit-webhook
+        docker build -t metalstack/kubernetes-kubernetes-audit-tailer .
+        docker push metalstack/kubernetes-kubernetes-audit-tailer

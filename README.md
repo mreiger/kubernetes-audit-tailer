@@ -1,1 +1,1 @@
-# kubernetes-splunk-audit-webhook
+# kubernetes-kubernetes-audit-tailer
