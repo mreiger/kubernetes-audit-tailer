@@ -1,4 +1,4 @@
-module github.com/metal-stack/kubernetes-kubernetes-audit-tailer
+module github.com/mreiger/kubernetes-audit-tailer
 
 go 1.13
 

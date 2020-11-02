@@ -13,7 +13,7 @@ import (
 	hec "github.com/fuyufjh/splunk-hec-go"
 	"github.com/metal-stack/v"
 
-	"github.com/metal-stack/kubernetes-kubernetes-audit-tailer/pkg/controllers/audit"
+	"github.com/mreiger/kubernetes-audit-tailer/pkg/controllers/audit"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

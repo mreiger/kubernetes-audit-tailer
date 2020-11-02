@@ -1,1 +1,1 @@
-# kubernetes-kubernetes-audit-tailer
+# kubernetes-audit-tailer

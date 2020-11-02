@@ -19,5 +19,5 @@ jobs:
       run: |
         docker login -u metalstackci -p ${{ secrets.DOCKER_HUB_TOKEN }}
         # pull request images are prefixed with 'pr' to prevent them from overriding released images
-        docker build -t metalstack/kubernetes-kubernetes-audit-tailer:pr-${GITHUB_HEAD_REF##*/} .
-        docker push metalstack/kubernetes-kubernetes-audit-tailer:pr-${GITHUB_HEAD_REF##*/}
+        docker build -t metalstack/kubernetes-audit-tailer:pr-${GITHUB_HEAD_REF##*/} .
+        docker push metalstack/kubernetes-audit-tailer:pr-${GITHUB_HEAD_REF##*/}
